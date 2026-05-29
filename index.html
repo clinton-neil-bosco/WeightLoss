@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aruna's Diet Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FDF6EC;
+    --warm-white: #FFFBF5;
+    --saffron: #E8820C;
+    --saffron-light: #F5A94A;
+    --saffron-pale: #FDE8C8;
+    --turmeric: #D4A017;
+    --green: #2D6A4F;
+    --green-light: #52B788;
+    --green-pale: #D8F3DC;
+    --red-soft: #E76F51;
+    --red-pale: #FDEAE4;
+    --blue: #2563EB;
+    --blue-pale: #EFF6FF;
+    --text-dark: #1A1207;
+    --text-mid: #5C4A2A;
+    --text-light: #9C7E52;
+    --border: #E8D5B7;
+    --shadow-sm: 0 2px 8px rgba(90,50,10,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--cream); font-family: 'DM Sans', sans-serif; color: var(--text-dark); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #1A3A2A 0%, #2D6A4F 60%, #3A8A65 100%);
+    padding: 24px 20px 20px; text-align: center; position: relative; overflow: hidden;
+  }
+  header::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse at 70% 30%, rgba(232,130,12,0.18) 0%, transparent 60%); }
+  header h1 { font-family:'Playfair Display',serif; font-size:1.7rem; color:#fff; position:relative; }
+  header p { color:rgba(255,255,255,0.6); font-size:0.78rem; margin-top:3px; position:relative; }
+
+  /* FB STATUS BAR */
+  .fb-bar { display:flex; align-items:center; gap:8px; font-size:0.72rem; padding:8px 16px; background:#FFF8E8; border-bottom:1px solid var(--border); color:var(--text-light); }
+  .fb-dot { width:7px; height:7px; border-radius:50%; background:#D4A017; flex-shrink:0; }
+  .fb-bar.ok { background:#F0FBF4; }
+  .fb-bar.ok .fb-dot { background:var(--green-light); box-shadow:0 0 5px var(--green-light); }
+
+  /* TAB BAR */
+  .tab-bar { display:flex; background:var(--warm-white); border-bottom:1px solid var(--border); overflow-x:auto; position:sticky; top:0; z-index:50; }
+  .tab { flex:1; min-width:72px; padding:12px 6px; text-align:center; font-size:0.76rem; font-weight:600; cursor:pointer; color:var(--text-light); border-bottom:3px solid transparent; transition:all 0.2s; white-space:nowrap; }
+  .tab.active { color:var(--saffron); border-bottom-color:var(--saffron); }
+
+  /* DATE NAV */
+  .date-nav { display:flex; align-items:center; justify-content:center; gap:12px; padding:12px 16px; background:var(--warm-white); border-bottom:1px solid var(--border); }
+  .date-nav button { background:none; border:none; cursor:pointer; color:var(--saffron); font-size:1.2rem; padding:4px 8px; border-radius:8px; transition:background 0.15s; }
+  .date-nav button:hover { background:var(--saffron-pale); }
+  .date-label { font-family:'Playfair Display',serif; font-size:0.98rem; color:var(--text-dark); min-width:170px; text-align:center; }
+  .today-btn { font-size:0.72rem !important; background:var(--saffron) !important; color:#fff !important; border-radius:20px !important; padding:4px 12px !important; font-family:'DM Sans',sans-serif; }
+
+  /* VIEWS */
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* MAIN */
+  main { max-width:640px; margin:0 auto; padding:16px 14px 80px; display:flex; flex-direction:column; gap:14px; }
+
+  /* CARD */
+  .card { background:var(--warm-white); border-radius:16px; border:1px solid var(--border); box-shadow:var(--shadow-sm); overflow:hidden; }
+  .card-header { display:flex; align-items:center; gap:10px; padding:13px 16px 11px; border-bottom:1px solid var(--border); }
+  .card-header .icon { font-size:1.2rem; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:9px; }
+  .card-header h2 { font-family:'Playfair Display',serif; font-size:0.95rem; color:var(--text-dark); font-weight:600; }
+  .card-header .time-badge { margin-left:auto; font-size:0.7rem; background:var(--saffron-pale); color:var(--saffron); padding:3px 9px; border-radius:20px; font-weight:600; }
+  .card-body { padding:13px 16px; }
+
+  /* INPUTS */
+  .row-inputs { display:flex; gap:10px; flex-wrap:wrap; }
+  .input-group { flex:1; min-width:120px; }
+  .input-group label { display:block; font-size:0.72rem; font-weight:600; color:var(--text-light); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.06em; }
+  .input-group input, .input-group select, .input-group textarea {
+    width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:11px;
+    font-size:0.88rem; font-family:'DM Sans',sans-serif; color:var(--text-dark);
+    background:var(--cream); outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color:var(--saffron); box-shadow:0 0 0 3px rgba(232,130,12,0.1); }
+  .input-group textarea { resize:vertical; min-height:65px; }
+
+  /* WORKOUT TOGGLE */
+  .workout-toggle { display:flex; gap:8px; margin-bottom:10px; }
+  .toggle-btn { flex:1; padding:9px; border:2px solid var(--border); border-radius:11px; background:var(--cream); cursor:pointer; font-size:0.84rem; font-family:'DM Sans',sans-serif; font-weight:500; color:var(--text-mid); transition:all 0.2s; text-align:center; }
+  .toggle-btn.active-yes { border-color:var(--green); background:var(--green-pale); color:var(--green); }
+  .toggle-btn.active-no  { border-color:var(--red-soft); background:var(--red-pale); color:var(--red-soft); }
+
+  /* MEAL OPTIONS */
+  .meal-time-label { font-size:0.7rem; font-weight:700; color:var(--text-light); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:7px; }
+  .option-list { display:flex; flex-direction:column; gap:6px; }
+  .option-item { display:flex; align-items:flex-start; gap:9px; padding:9px 12px; border:1.5px solid var(--border); border-radius:11px; cursor:pointer; transition:all 0.2s; background:var(--cream); }
+  .option-item:hover { border-color:var(--saffron-light); background:var(--warm-white); }
+  .option-item.selected { border-color:var(--saffron); background:var(--saffron-pale); }
+  .option-radio { width:17px; height:17px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; margin-top:2px; transition:all 0.2s; display:flex; align-items:center; justify-content:center; }
+  .option-item.selected .option-radio { border-color:var(--saffron); background:var(--saffron); }
+  .option-item.selected .option-radio::after { content:''; width:6px; height:6px; border-radius:50%; background:white; display:block; }
+  .option-text { font-size:0.85rem; color:var(--text-mid); line-height:1.4; flex:1; }
+  .option-item.selected .option-text { color:var(--text-dark); font-weight:500; }
+
+  /* EDIT OPTION BTN */
+  .option-edit-btn { background:none; border:none; cursor:pointer; color:var(--text-light); font-size:0.75rem; padding:2px 5px; border-radius:5px; transition:all 0.15s; flex-shrink:0; margin-top:2px; }
+  .option-edit-btn:hover { background:rgba(232,130,12,0.12); color:var(--saffron); }
+
+  /* ADD OPTION */
+  .add-option-row { display:flex; gap:8px; margin-top:8px; }
+  .add-option-input { flex:1; padding:8px 12px; border:1.5px dashed var(--border); border-radius:11px; font-size:0.84rem; font-family:'DM Sans',sans-serif; color:var(--text-dark); background:var(--cream); outline:none; transition:border-color 0.2s; }
+  .add-option-input:focus { border-color:var(--saffron); border-style:solid; }
+  .add-option-btn { padding:8px 14px; background:var(--saffron); color:#fff; border:none; border-radius:11px; font-size:0.82rem; font-weight:600; cursor:pointer; transition:opacity 0.2s; }
+  .add-option-btn:hover { opacity:0.88; }
+
+  /* FIXED ITEMS */
+  .fixed-items { background:var(--cream); border-radius:9px; padding:9px 12px; margin-bottom:10px; border:1px dashed var(--border); }
+  .fixed-items .fix-label { font-size:0.7rem; color:var(--text-light); font-weight:600; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.06em; }
+  .fixed-items ul { list-style:none; }
+  .fixed-items ul li { font-size:0.83rem; color:var(--text-mid); padding:2px 0; }
+  .fixed-items ul li::before { content:'• '; color:var(--saffron); }
+
+  /* CHIPS */
+  .chip-group { display:flex; flex-wrap:wrap; gap:7px; }
+  .chip { padding:6px 13px; border-radius:20px; border:1.5px solid var(--border); font-size:0.8rem; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.2s; background:var(--cream); color:var(--text-mid); user-select:none; }
+  .chip:hover { border-color:var(--saffron-light); }
+  .chip.active { background:var(--saffron); border-color:var(--saffron); color:#fff; font-weight:600; }
+
+  /* SECTION DIVIDER */
+  .section-divider { height:1px; background:var(--border); margin:10px 0; }
+
+  /* HALDI */
+  .haldi-row { display:flex; align-items:center; gap:12px; padding:11px 13px; background:linear-gradient(90deg,#FFF8E6,var(--warm-white)); border-radius:11px; border:1px solid #F0D890; }
+  .haldi-check { width:26px; height:26px; border-radius:8px; border:2px solid var(--border); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; transition:all 0.2s; background:var(--cream); }
+  .haldi-check.checked { background:var(--turmeric); border-color:var(--turmeric); color:#fff; }
+
+  /* SAVE BTN */
+  .save-btn { width:100%; padding:14px; background:linear-gradient(135deg,var(--green) 0%,#3A8A65 100%); color:white; border:none; border-radius:15px; font-size:0.96rem; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; letter-spacing:0.03em; transition:opacity 0.2s,transform 0.1s; box-shadow:0 4px 14px rgba(45,106,79,0.22); }
+  .save-btn:hover { opacity:0.93; }
+  .save-btn:active { transform:scale(0.98); }
+
+  /* WHATSAPP SUMMARY */
+  .summary-box { background:#F0FDF4; border:1.5px solid #86EFAC; border-radius:13px; padding:14px 15px; font-size:0.84rem; line-height:1.7; color:#166534; font-family:'DM Sans',sans-serif; white-space:pre-wrap; word-break:break-word; }
+  .copy-btn { width:100%; padding:12px; background:linear-gradient(135deg,#25D366,#128C7E); color:#fff; border:none; border-radius:13px; font-size:0.92rem; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity 0.2s; box-shadow:0 3px 12px rgba(37,211,102,0.28); }
+  .copy-btn:hover { opacity:0.92; }
+  .copy-btn.copied { background:linear-gradient(135deg,var(--green),#2D6A4F); }
+
+  /* HISTORY */
+  .history-list { display:flex; flex-direction:column; gap:10px; }
+  .hist-card { background:var(--warm-white); border-radius:13px; border:1px solid var(--border); padding:13px 15px; cursor:pointer; transition:border-color 0.2s; }
+  .hist-card:hover { border-color:var(--saffron-light); }
+  .hist-date { font-family:'Playfair Display',serif; font-size:0.93rem; color:var(--text-dark); margin-bottom:7px; }
+  .hist-row { display:flex; gap:7px; flex-wrap:wrap; margin-top:5px; }
+  .hist-pill { padding:3px 9px; border-radius:20px; font-size:0.74rem; font-weight:500; }
+  .hist-pill.weight { background:var(--saffron-pale); color:var(--saffron); }
+  .hist-pill.workout-yes { background:var(--green-pale); color:var(--green); }
+  .hist-pill.workout-no { background:var(--red-pale); color:var(--red-soft); }
+  .hist-pill.feeling { background:#EEE8FF; color:#6B46C1; }
+
+  /* WEIGHT CHART */
+  .wc-bars { display:flex; align-items:flex-end; gap:5px; height:80px; }
+  .wc-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .wc-bar { width:100%; background:var(--saffron-light); border-radius:4px 4px 0 0; min-height:4px; }
+  .wc-lbl { font-size:0.62rem; color:var(--text-light); text-align:center; }
+  .wc-val { font-size:0.66rem; color:var(--saffron); font-weight:600; }
+
+  /* DIET EDITOR */
+  .edit-section { border-radius:13px; border:1px solid var(--border); overflow:hidden; margin-bottom:10px; }
+  .edit-section-header { display:flex; align-items:center; gap:8px; padding:11px 14px; background:var(--warm-white); cursor:pointer; border-bottom:1px solid transparent; font-weight:600; font-size:0.88rem; color:var(--text-dark); }
+  .edit-section-header .arrow { margin-left:auto; color:var(--text-light); font-size:0.8rem; transition:transform 0.2s; }
+  .edit-section-header.open { border-bottom-color:var(--border); }
+  .edit-section-header.open .arrow { transform:rotate(90deg); }
+  .edit-section-body { display:none; padding:12px 14px; background:var(--cream); }
+  .edit-section-body.open { display:block; }
+  .edit-item-row { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px; transition:background 0.15s; }
+  .edit-item-row:hover { background:rgba(232,130,12,0.06); }
+  .edit-item-text { flex:1; font-size:0.83rem; color:var(--text-mid); }
+  .edit-item-del { background:none; border:none; cursor:pointer; color:#ccc; font-size:1rem; padding:2px 6px; border-radius:5px; transition:color 0.15s; }
+  .edit-item-del:hover { color:var(--red-soft); }
+  .edit-item-save { background:none; border:none; cursor:pointer; color:var(--green); font-size:0.8rem; padding:3px 8px; border-radius:6px; border:1px solid var(--green); transition:all 0.15s; }
+  .edit-item-save:hover { background:var(--green-pale); }
+  .edit-qty-input { width:60px; padding:4px 8px; border:1.5px solid var(--border); border-radius:7px; font-size:0.8rem; font-family:'DM Sans',sans-serif; color:var(--text-dark); background:var(--warm-white); outline:none; }
+  .edit-qty-input:focus { border-color:var(--saffron); }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:#1A3A2A; color:#fff; padding:11px 22px; border-radius:30px; font-size:0.85rem; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,0.18); opacity:0; pointer-events:none; transition:opacity 0.3s; z-index:999; white-space:nowrap; }
+  .toast.show { opacity:1; }
+
+  /* EDIT INLINE */
+  .edit-inline { display:none; flex:1; }
+  .edit-inline input { width:100%; padding:5px 9px; border:1.5px solid var(--saffron); border-radius:7px; font-size:0.82rem; font-family:'DM Sans',sans-serif; outline:none; background:var(--warm-white); color:var(--text-dark); }
+
+  /* NO DATA */
+  .no-data { text-align:center; color:var(--text-light); font-size:0.86rem; padding:24px 0; }
+
+  ::-webkit-scrollbar { width:4px; height:4px; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Aruna's Diet Tracker</h1>
+  <p>Track meals, workout & wellness — syncs everywhere</p>
+</header>
+
+<div class="fb-bar" id="fbBar">
+  <div class="fb-dot" id="fbDot"></div>
+  <span id="fbTxt">Connecting to Firebase…</span>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('today')">📋 Today</div>
+  <div class="tab" onclick="switchTab('summary')">📤 Summary</div>
+  <div class="tab" onclick="switchTab('history')">📅 History</div>
+  <div class="tab" onclick="switchTab('weight')">⚖️ Weight</div>
+  <div class="tab" onclick="switchTab('diet')">✏️ Diet</div>
+</div>
+
+<!-- ========== TODAY ========== -->
+<div class="view active" id="view-today">
+  <div class="date-nav">
+    <button onclick="changeDay(-1)">‹</button>
+    <div class="date-label" id="dateLabel">—</div>
+    <button onclick="changeDay(1)">›</button>
+    <button class="toggle-btn today-btn" onclick="goToday()">Today</button>
+  </div>
+  <main>
+
+    <!-- Weight & Wellness -->
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#FDE8C8">⚖️</div><h2>Weight & Wellness</h2></div>
+      <div class="card-body">
+        <div class="row-inputs">
+          <div class="input-group"><label>Weight (kg)</label><input type="number" id="inp-weight" placeholder="e.g. 62.5" step="0.1" min="30" max="200"></div>
+          <div class="input-group"><label>Wake-up Time</label><input type="time" id="inp-wakeup" value="12:00"></div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="meal-time-label">How are you feeling?</div>
+          <div class="chip-group" id="feeling-chips">
+            <div class="chip" onclick="toggleChip(this)">💪 Energetic</div>
+            <div class="chip" onclick="toggleChip(this)">😊 Good</div>
+            <div class="chip" onclick="toggleChip(this)">😐 Okay</div>
+            <div class="chip" onclick="toggleChip(this)">😩 Weak</div>
+            <div class="chip" onclick="toggleChip(this)">🍽️ Hungry</div>
+            <div class="chip" onclick="toggleChip(this)">😴 Tired</div>
+            <div class="chip" onclick="toggleChip(this)">🤕 Unwell</div>
+            <div class="chip" onclick="toggleChip(this)">😌 Calm</div>
+          </div>
+        </div>
+        <div style="margin-top:11px"><div class="input-group"><label>Extra Notes</label><textarea id="inp-notes" placeholder="Symptoms, mood, observations…"></textarea></div></div>
+      </div>
+    </div>
+
+    <!-- Workout -->
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#D8F3DC">🏋️</div><h2>Workout</h2><span class="time-badge">After Wake-up</span></div>
+      <div class="card-body">
+        <div class="workout-toggle">
+          <div class="toggle-btn" id="wo-yes" onclick="setWorkout(true)">✅ Yes, worked out</div>
+          <div class="toggle-btn" id="wo-no" onclick="setWorkout(false)">❌ Rest day</div>
+        </div>
+        <div id="workout-detail" style="display:none">
+          <div class="row-inputs">
+            <div class="input-group"><label>Type</label>
+              <select id="inp-workout-type">
+                <option value="">Select…</option>
+                <option>20 min general workout</option>
+                <option>HIIT</option>
+                <option>Cardio / Walk</option>
+                <option>Strength Training</option>
+                <option>Yoga / Stretching</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="input-group"><label>Duration (mins)</label><input type="number" id="inp-workout-dur" placeholder="20" min="5" max="180"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Morning -->
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#FDE8C8">🌅</div><h2>Morning Ritual</h2><span class="time-badge">12 PM</span></div>
+      <div class="card-body">
+        <div class="fixed-items"><div class="fix-label">On waking up</div><ul><li id="fix-morning-water-txt">300 ml warm water</li><li id="fix-morning-nuts-txt">5 soaked almonds, 2 cashews, 2 walnuts, 5 raisins</li></ul></div>
+        <div class="chip-group">
+          <div class="chip" id="morning-water" onclick="toggleChip(this)">💧 Had warm water</div>
+          <div class="chip" id="morning-nuts" onclick="toggleChip(this)">🌰 Had soaked nuts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lunch -->
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#FEF3CD">🍛</div><h2>Lunch</h2><span class="time-badge">2 PM</span></div>
+      <div class="card-body">
+        <div class="fixed-items"><div class="fix-label">Always includes</div><ul><li id="fix-lunch-carb-txt">3 chapathi or rice</li><li>250g vegetables</li><li>100g curd</li></ul></div>
+        <div class="meal-time-label">Carb choice</div>
+        <div class="option-list" id="lunch-carb"></div>
+        <div class="section-divider"></div>
+        <div class="meal-time-label">Protein option</div>
+        <div class="option-list" id="lunch-protein"></div>
+      </div>
+    </div>
+
+    <!-- Snack -->
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#D8F3DC">🍎</div><h2>Evening Snack</h2><span class="time-badge">4 PM</span></div>
+      <div class="card-body">
+        <div class="option-list" id="snack-fruit"></div>
+      </div>
+    </div>
+
+    <!-- Dinner -->
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#EEE8FF">🌙</div><h2>Dinner</h2><span class="time-badge">8:30 PM</span></div>
+      <div class="card-body">
+        <div class="fixed-items"><div class="fix-label">Always includes</div><ul><li id="fix-dinner-carb-txt">2 chapathi or rice</li><li>250g vegetables</li></ul></div>
+        <div class="meal-time-label">Carb choice</div>
+        <div class="option-list" id="dinner-carb"></div>
+        <div class="section-divider"></div>
+        <div class="meal-time-label">Protein option</div>
+        <div class="option-list" id="dinner-protein"></div>
+      </div>
+    </div>
+
+    <!-- Midnight -->
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#E8F4FD">🌜</div><h2>Midnight Snack</h2><span class="time-badge">1:30 AM</span></div>
+      <div class="card-body">
+        <div class="option-list" id="midnight-snack"></div>
+      </div>
+    </div>
+
+    <!-- Haldi -->
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#FFF8D6">🥛</div><h2>Before Sleep</h2></div>
+      <div class="card-body">
+        <div class="haldi-row">
+          <div style="font-size:1.3rem">🌿</div>
+          <span style="font-size:0.87rem;color:var(--text-mid);flex:1">Haldi doodh (turmeric milk)</span>
+          <div class="haldi-check checked" id="haldi-check" onclick="toggleHaldi()">✓</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="save-btn" onclick="saveDay()">💾 Save Day's Log</button>
+  </main>
+</div>
+
+<!-- ========== SUMMARY / WHATSAPP ========== -->
+<div class="view" id="view-summary">
+  <div class="date-nav">
+    <button onclick="changeSummaryDay(-1)">‹</button>
+    <div class="date-label" id="summaryDateLabel">—</div>
+    <button onclick="changeSummaryDay(1)">›</button>
+    <button class="toggle-btn today-btn" onclick="goSummaryToday()">Today</button>
+  </div>
+  <main>
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#D8F3DC">📤</div><h2>WhatsApp Summary</h2></div>
+      <div class="card-body">
+        <p style="font-size:0.8rem;color:var(--text-light);margin-bottom:10px">Copy and paste this to WhatsApp for Aruna</p>
+        <div class="summary-box" id="summary-text">—</div>
+        <div style="margin-top:10px">
+          <button class="copy-btn" id="copy-btn" onclick="copySummary()">
+            <span>📋</span><span id="copy-label">Copy for WhatsApp</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ========== HISTORY ========== -->
+<div class="view" id="view-history">
+  <main>
+    <div id="history-list" class="history-list"><div class="no-data">No entries yet. Start tracking today!</div></div>
+  </main>
+</div>
+
+<!-- ========== WEIGHT ========== -->
+<div class="view" id="view-weight">
+  <main>
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#FDE8C8">📈</div><h2>Weight Progress</h2></div>
+      <div class="card-body">
+        <div style="font-size:0.72rem;color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:7px">Last 7 entries</div>
+        <div class="wc-bars" id="wc-bars"><div class="no-data" style="width:100%;font-size:0.8rem">No weight data yet</div></div>
+      </div>
+    </div>
+    <div id="weight-list" class="history-list"></div>
+  </main>
+</div>
+
+<!-- ========== DIET EDITOR ========== -->
+<div class="view" id="view-diet">
+  <main>
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:#FEF3CD">✏️</div><h2>Customise Your Diet</h2></div>
+      <div class="card-body">
+        <p style="font-size:0.8rem;color:var(--text-light);margin-bottom:12px">Edit quantities, add or remove options. Changes reflect immediately in Today's log.</p>
+        <div id="diet-editor"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════ DEFAULT DIET DATA ═══════════════════════════
+var DEFAULT_DIET = {
+  "lunch-carb": ["3 Chapathi","350g cooked rice"],
+  "lunch-protein": [
+    "2 cooked eggs + 50g pulses",
+    "50g pulses + 75g paneer",
+    "100g paneer + 1 whole egg",
+    "100g chicken",
+    "100g mutton",
+    "100g seafood",
+    "50g pulses + 75g chicken"
+  ],
+  "snack-fruit": [
+    "200g seasonal fruits",
+    "50g mango",
+    "50g banana (or 1 banana)",
+    "Mix of seasonal fruits"
+  ],
+  "dinner-carb": ["2 Chapathi","200g cooked rice"],
+  "dinner-protein": [
+    "2 egg whites + 50g pulses",
+    "50g pulses + 50g paneer",
+    "50g paneer + 2 egg whites",
+    "75g chicken",
+    "100g mutton",
+    "75g seafood",
+    "50g pulses + 75g chicken"
+  ],
+  "midnight-snack": [
+    "1 chapathi with curry",
+    "1 sandwich",
+    "Roasted makhana",
+    "5 almonds + 100g fruit",
+    "⏭️ Skipped midnight snack"
+  ]
+};
+
+var MEAL_LABELS = {
+  "lunch-carb": "Lunch – Carb",
+  "lunch-protein": "Lunch – Protein",
+  "snack-fruit": "Evening Snack",
+  "dinner-carb": "Dinner – Carb",
+  "dinner-protein": "Dinner – Protein",
+  "midnight-snack": "Midnight Snack"
+};
+
+// ═══════════════════════════ STATE ═══════════════════════════
+var diet = JSON.parse(JSON.stringify(DEFAULT_DIET)); // local copy, overridden by Firebase
+var currentDate = todayStr();
+var summaryDate = todayStr();
+var workoutDid = null;
+var haldiChecked = true;
+var fbSave = null;
+var fbSaveDiet = null;
+var S = {}; // all daily logs keyed by date
+
+function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function formatDate(str){
+  var d = new Date(str+'T12:00:00');
+  return d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function formatShort(str){
+  var d = new Date(str+'T12:00:00');
+  return d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+}
+
+// ═══════════════════════════ LOCAL STORAGE ═══════════════════════════
+function loadLocal(){
+  try {
+    var logs = JSON.parse(localStorage.getItem('aruna_logs')||'{}');
+    var d    = JSON.parse(localStorage.getItem('aruna_diet')||'null');
+    if(d) diet = d;
+    return logs;
+  } catch(e){ return {}; }
+}
+function saveLocal(){
+  localStorage.setItem('aruna_logs', JSON.stringify(S));
+  localStorage.setItem('aruna_diet', JSON.stringify(diet));
+}
+
+// ═══════════════════════════ FIREBASE ═══════════════════════════
+(function(){
+  var cfg = {
+    apiKey: "AIzaSyBV8Dlg0840RF3NPS_kPClYLAG3yF_NAW4",
+    authDomain: "upskill-6a81e.firebaseapp.com",
+    databaseURL: "https://upskill-6a81e-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "upskill-6a81e",
+    storageBucket: "upskill-6a81e.firebasestorage.app",
+    messagingSenderId: "48016246460",
+    appId: "1:48016246460:web:be6b8c106d4f58931bf2b9"
+  };
+
+  Promise.all([
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js")
+  ]).then(function(m){
+    var app = m[0].initializeApp(cfg);
+    var db  = m[1].getDatabase(app);
+    var r   = m[1].ref;
+    var sv  = m[1].set;
+    var ov  = m[1].onValue;
+
+    // Save functions
+    fbSave = function(){ return sv(r(db,"diet_tracker/logs"), S).catch(function(e){console.warn("FB logs save:",e);}); };
+    fbSaveDiet = function(){ return sv(r(db,"diet_tracker/diet"), diet).catch(function(e){console.warn("FB diet save:",e);}); };
+
+    // Listen: logs
+    ov(r(db,"diet_tracker/logs"), function(snap){
+      if(!snap.exists()) return;
+      S = snap.val() || {};
+      saveLocal();
+      loadDay(currentDate);
+      if(document.getElementById('view-history').classList.contains('active')) renderHistory();
+      if(document.getElementById('view-weight').classList.contains('active')) renderWeight();
+      if(document.getElementById('view-summary').classList.contains('active')) renderSummary();
+    });
+
+    // Listen: diet options
+    ov(r(db,"diet_tracker/diet"), function(snap){
+      if(!snap.exists()) return;
+      diet = snap.val();
+      saveLocal();
+      renderAllOptions();
+      renderDietEditor();
+    });
+
+    setFbStatus(true,"Firebase connected — syncs across all devices ✓");
+  }).catch(function(e){
+    console.warn("Firebase unavailable:", e);
+    setFbStatus(false,"Offline — saving locally only");
+  });
+})();
+
+function setFbStatus(ok, msg){
+  var bar = document.getElementById('fbBar');
+  var txt = document.getElementById('fbTxt');
+  if(bar) bar.className = 'fb-bar' + (ok?' ok':'');
+  if(txt) txt.textContent = msg;
+}
+
+function persist(){
+  saveLocal();
+  if(fbSave) fbSave();
+}
+function persistDiet(){
+  saveLocal();
+  if(fbSaveDiet) fbSaveDiet();
+}
+
+// ═══════════════════════════ RENDER OPTIONS ═══════════════════════════
+function renderOptionList(groupId){
+  var container = document.getElementById(groupId);
+  if(!container) return;
+  var opts = diet[groupId] || [];
+  var saved = (S[currentDate] && S[currentDate][groupId]) || null;
+  container.innerHTML = opts.map(function(opt){
+    var sel = opt === saved ? ' selected' : '';
+    return '<div class="option-item'+sel+'" onclick="selectOption(this,\''+groupId+'\')">'
+      +'<div class="option-radio"></div>'
+      +'<div class="option-text">'+escHtml(opt)+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function renderAllOptions(){
+  Object.keys(diet).forEach(renderOptionList);
+}
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ═══════════════════════════ DATE NAV ═══════════════════════════
+function updateDateLabel(){ document.getElementById('dateLabel').textContent = formatDate(currentDate); }
+function changeDay(delta){ var d=new Date(currentDate+'T12:00:00'); d.setDate(d.getDate()+delta); currentDate=d.toISOString().split('T')[0]; updateDateLabel(); loadDay(currentDate); }
+function goToday(){ currentDate=todayStr(); updateDateLabel(); loadDay(currentDate); }
+
+function updateSummaryLabel(){ document.getElementById('summaryDateLabel').textContent = formatDate(summaryDate); }
+function changeSummaryDay(delta){ var d=new Date(summaryDate+'T12:00:00'); d.setDate(d.getDate()+delta); summaryDate=d.toISOString().split('T')[0]; updateSummaryLabel(); renderSummary(); }
+function goSummaryToday(){ summaryDate=todayStr(); updateSummaryLabel(); renderSummary(); }
+
+// ═══════════════════════════ TAB ═══════════════════════════
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(function(t,i){ t.classList.toggle('active',['today','summary','history','weight','diet'][i]===tab); });
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.getElementById('view-'+tab).classList.add('active');
+  if(tab==='history') renderHistory();
+  if(tab==='weight') renderWeight();
+  if(tab==='diet'){ renderDietEditor(); }
+  if(tab==='summary'){ summaryDate=currentDate; updateSummaryLabel(); renderSummary(); }
+}
+
+// ═══════════════════════════ INTERACTIONS ═══════════════════════════
+function selectOption(el, group){
+  document.querySelectorAll('#'+group+' .option-item').forEach(function(o){ o.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+function toggleChip(el){ el.classList.toggle('active'); }
+
+function setWorkout(val){
+  workoutDid = val;
+  document.getElementById('wo-yes').className = 'toggle-btn'+(val?' active-yes':'');
+  document.getElementById('wo-no').className = 'toggle-btn'+(!val?' active-no':'');
+  document.getElementById('workout-detail').style.display = val?'block':'none';
+}
+function toggleHaldi(){
+  haldiChecked = !haldiChecked;
+  var el = document.getElementById('haldi-check');
+  el.className = 'haldi-check'+(haldiChecked?' checked':'');
+  el.textContent = haldiChecked?'✓':'';
+}
+
+// ═══════════════════════════ COLLECT / LOAD ═══════════════════════════
+function collectData(){
+  var getSelected = function(group){
+    var sel = document.querySelector('#'+group+' .option-item.selected .option-text');
+    return sel ? sel.textContent : null;
+  };
+  var feelings=[];
+  document.querySelectorAll('#feeling-chips .chip.active').forEach(function(c){ feelings.push(c.textContent); });
+  return {
+    weight: document.getElementById('inp-weight').value,
+    wakeup: document.getElementById('inp-wakeup').value,
+    feelings: feelings,
+    notes: document.getElementById('inp-notes').value,
+    workout: workoutDid,
+    workoutType: document.getElementById('inp-workout-type').value,
+    workoutDur: document.getElementById('inp-workout-dur').value,
+    morningWater: document.getElementById('morning-water').classList.contains('active'),
+    morningNuts: document.getElementById('morning-nuts').classList.contains('active'),
+    'lunch-carb': getSelected('lunch-carb'),
+    'lunch-protein': getSelected('lunch-protein'),
+    'snack-fruit': getSelected('snack-fruit'),
+    'dinner-carb': getSelected('dinner-carb'),
+    'dinner-protein': getSelected('dinner-protein'),
+    'midnight-snack': getSelected('midnight-snack'),
+    haldi: haldiChecked
+  };
+}
+
+function loadDay(date){
+  var d = S[date] || {};
+  document.getElementById('inp-weight').value = d.weight||'';
+  document.getElementById('inp-wakeup').value = d.wakeup||'12:00';
+  document.getElementById('inp-notes').value = d.notes||'';
+
+  // feelings
+  document.querySelectorAll('#feeling-chips .chip').forEach(function(c){
+    c.classList.toggle('active', d.feelings && d.feelings.indexOf(c.textContent)>=0);
+  });
+
+  // workout
+  if(d.workout===true) setWorkout(true);
+  else if(d.workout===false) setWorkout(false);
+  else { workoutDid=null; document.getElementById('wo-yes').className='toggle-btn'; document.getElementById('wo-no').className='toggle-btn'; document.getElementById('workout-detail').style.display='none'; }
+  document.getElementById('inp-workout-type').value = d.workoutType||'';
+  document.getElementById('inp-workout-dur').value = d.workoutDur||'';
+
+  // morning chips
+  document.getElementById('morning-water').classList.toggle('active', !!d.morningWater);
+  document.getElementById('morning-nuts').classList.toggle('active', !!d.morningNuts);
+
+  // meal options
+  ['lunch-carb','lunch-protein','snack-fruit','dinner-carb','dinner-protein','midnight-snack'].forEach(function(g){
+    var saved = d[g] || null;
+    document.querySelectorAll('#'+g+' .option-item').forEach(function(o){
+      var txt = o.querySelector('.option-text');
+      if(txt) o.classList.toggle('selected', txt.textContent === saved);
+    });
+  });
+
+  // haldi
+  haldiChecked = d.haldi!==false;
+  var hc = document.getElementById('haldi-check');
+  hc.className = 'haldi-check'+(haldiChecked?' checked':'');
+  hc.textContent = haldiChecked?'✓':'';
+}
+
+function saveDay(){
+  var data = collectData();
+  S[currentDate] = data;
+  persist();
+  showToast('✅ Saved for '+new Date(currentDate+'T12:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}));
+}
+
+// ═══════════════════════════ WHATSAPP SUMMARY ═══════════════════════════
+var summaryDateGlobal = todayStr();
+
+function renderSummary(){
+  var d = S[summaryDate] || {};
+  var lines = [];
+  var dateFormatted = new Date(summaryDate+'T12:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  lines.push('📅 Date: '+dateFormatted);
+  lines.push('');
+
+  // Weight
+  lines.push('⚖️ Weight: '+(d.weight ? d.weight+' kg' : 'Not logged'));
+
+  // Wake up
+  if(d.wakeup) lines.push('🌅 Wake-up: '+d.wakeup);
+
+  lines.push('');
+
+  // Workout
+  if(d.workout===true){
+    var wo = '🏋️ Workout: Done';
+    if(d.workoutType) wo += ' — '+d.workoutType;
+    if(d.workoutDur) wo += ' ('+d.workoutDur+' mins)';
+    lines.push(wo);
+  } else if(d.workout===false){
+    lines.push('🏋️ Workout: Rest day');
+  } else {
+    lines.push('🏋️ Workout: Not logged');
+  }
+
+  lines.push('');
+
+  // Lunch
+  var lunchParts = [];
+  if(d['lunch-carb']) lunchParts.push(d['lunch-carb']);
+  if(d['lunch-protein']) lunchParts.push(d['lunch-protein']);
+  lines.push('🍛 Lunch: '+(lunchParts.length ? lunchParts.join(' + ') : 'Not logged'));
+  lines.push('   (+ 250g vegetables, 100g curd)');
+
+  lines.push('');
+
+  // Snack
+  lines.push('🍎 Snacks: '+(d['snack-fruit']||'Not logged'));
+
+  lines.push('');
+
+  // Dinner
+  var dinnerParts = [];
+  if(d['dinner-carb']) dinnerParts.push(d['dinner-carb']);
+  if(d['dinner-protein']) dinnerParts.push(d['dinner-protein']);
+  lines.push('🌙 Dinner: '+(dinnerParts.length ? dinnerParts.join(' + ') : 'Not logged'));
+  lines.push('   (+ 250g vegetables)');
+
+  lines.push('');
+
+  // Midnight
+  if(d['midnight-snack'] && d['midnight-snack'].indexOf('Skip')<0){
+    lines.push('🌜 Late snack: '+d['midnight-snack']);
+    lines.push('');
+  }
+
+  // Haldi
+  lines.push('🥛 Haldi doodh: '+(d.haldi!==false ? 'Had ✓' : 'Skipped'));
+
+  lines.push('');
+
+  // Feeling
+  if(d.feelings && d.feelings.length){
+    lines.push('💬 Feeling: '+d.feelings.join(', '));
+  }
+
+  // Notes
+  if(d.notes && d.notes.trim()){
+    lines.push('📝 Notes: '+d.notes.trim());
+  }
+
+  document.getElementById('summary-text').textContent = lines.join('\n');
+}
+
+function copySummary(){
+  var text = document.getElementById('summary-text').textContent;
+  if(!text || text==='—') return;
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(function(){
+      var btn = document.getElementById('copy-btn');
+      var lbl = document.getElementById('copy-label');
+      btn.classList.add('copied');
+      lbl.textContent = '✓ Copied!';
+      setTimeout(function(){ btn.classList.remove('copied'); lbl.textContent='Copy for WhatsApp'; }, 2500);
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✅ Copied to clipboard!');
+  }
+}
+
+// ═══════════════════════════ HISTORY ═══════════════════════════
+function renderHistory(){
+  var dates = Object.keys(S).sort().reverse();
+  var container = document.getElementById('history-list');
+  if(!dates.length){ container.innerHTML='<div class="no-data">No entries yet. Start tracking today!</div>'; return; }
+  container.innerHTML = dates.map(function(date){
+    var d = S[date];
+    var short = formatShort(date);
+    var woLabel = d.workout===true ? '<span class="hist-pill workout-yes">✅ '+(d.workoutType||'Workout')+'</span>' : d.workout===false ? '<span class="hist-pill workout-no">😴 Rest</span>' : '';
+    var feelPills = (d.feelings||[]).map(function(f){ return '<span class="hist-pill feeling">'+f+'</span>'; }).join('');
+    return '<div class="hist-card" onclick="jumpToDate(\''+date+'\')"><div class="hist-date">'+short+(d.weight?' · <strong>'+d.weight+' kg</strong>':'')+'</div><div class="hist-row">'+woLabel+feelPills+(d.haldi?'<span class="hist-pill" style="background:#FFF8D6;color:#A07800;">🥛 Haldi</span>':'')+'</div>'+(d['lunch-protein']?'<div style="font-size:0.77rem;color:var(--text-light);margin-top:6px">🍛 '+d['lunch-protein']+'</div>':'')+(d['dinner-protein']?'<div style="font-size:0.77rem;color:var(--text-light)">🌙 '+d['dinner-protein']+'</div>':'')+(d.notes?'<div style="font-size:0.77rem;color:var(--text-light);margin-top:3px;font-style:italic">"'+d.notes.slice(0,70)+(d.notes.length>70?'…':'')+'"</div>':'')+'</div>';
+  }).join('');
+}
+
+function jumpToDate(date){
+  currentDate = date;
+  updateDateLabel();
+  loadDay(date);
+  switchTab('today');
+}
+
+// ═══════════════════════════ WEIGHT CHART ═══════════════════════════
+function renderWeight(){
+  var dates = Object.keys(S).filter(function(d){ return S[d].weight; }).sort().slice(-7);
+  var bars = document.getElementById('wc-bars');
+  var list = document.getElementById('weight-list');
+  if(!dates.length){ bars.innerHTML='<div class="no-data" style="width:100%;font-size:0.8rem">No weight data yet</div>'; list.innerHTML=''; return; }
+  var weights = dates.map(function(d){ return parseFloat(S[d].weight); });
+  var mn = Math.min.apply(null,weights)-0.5, mx = Math.max.apply(null,weights)+0.5;
+  bars.innerHTML = dates.map(function(date,i){
+    var w=weights[i], pct=Math.max(8,((w-mn)/(mx-mn))*72);
+    var lbl=new Date(date+'T12:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+    return '<div class="wc-bar-wrap"><div class="wc-val">'+w+'</div><div class="wc-bar" style="height:'+pct+'px"></div><div class="wc-lbl">'+lbl+'</div></div>';
+  }).join('');
+  list.innerHTML = dates.slice().reverse().map(function(date){
+    var d=S[date];
+    var lbl=new Date(date+'T12:00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+    return '<div class="hist-card"><div class="hist-date">'+lbl+'</div><div class="hist-row"><span class="hist-pill weight">⚖️ '+d.weight+' kg</span></div></div>';
+  }).join('');
+}
+
+// ═══════════════════════════ DIET EDITOR ═══════════════════════════
+function renderDietEditor(){
+  var container = document.getElementById('diet-editor');
+  container.innerHTML = Object.keys(diet).map(function(group){
+    var opts = diet[group];
+    var label = MEAL_LABELS[group] || group;
+    return '<div class="edit-section" id="es-'+group+'">'
+      +'<div class="edit-section-header" onclick="toggleEditSection(\''+group+'\')">'
+      +'<span>'+label+'</span><span class="arrow">›</span>'
+      +'</div>'
+      +'<div class="edit-section-body" id="esb-'+group+'">'
+      +opts.map(function(opt,i){
+        return '<div class="edit-item-row" id="eir-'+group+'-'+i+'">'
+          +'<span class="edit-item-text" id="eit-'+group+'-'+i+'">'+escHtml(opt)+'</span>'
+          +'<div class="edit-inline" id="einp-'+group+'-'+i+'">'
+          +'<input type="text" value="'+escHtml(opt)+'" id="einput-'+group+'-'+i+'" onkeydown="if(event.key===\'Enter\')saveEditOption(\''+group+'\','+i+')">'
+          +'</div>'
+          +'<button class="edit-item-save" onclick="toggleEditOption(\''+group+'\','+i+')" id="ebtn-'+group+'-'+i+'">✏️</button>'
+          +'<button class="edit-item-del" onclick="deleteOption(\''+group+'\','+i+')">✕</button>'
+          +'</div>';
+      }).join('')
+      +'<div class="add-option-row"><input class="add-option-input" type="text" id="new-opt-'+group+'" placeholder="Add new option…" onkeydown="if(event.key===\'Enter\')addOption(\''+group+'\')">'
+      +'<button class="add-option-btn" onclick="addOption(\''+group+'\')">+ Add</button></div>'
+      +'</div></div>';
+  }).join('');
+}
+
+function toggleEditSection(group){
+  var hdr = document.querySelector('#es-'+group+' .edit-section-header');
+  var body = document.getElementById('esb-'+group);
+  var isOpen = body.classList.contains('open');
+  if(isOpen){ body.classList.remove('open'); hdr.classList.remove('open'); }
+  else { body.classList.add('open'); hdr.classList.add('open'); }
+}
+
+function toggleEditOption(group, i){
+  var textEl = document.getElementById('eit-'+group+'-'+i);
+  var inpEl  = document.getElementById('einp-'+group+'-'+i);
+  var btnEl  = document.getElementById('ebtn-'+group+'-'+i);
+  var isEditing = inpEl.style.display==='flex';
+  if(isEditing){
+    saveEditOption(group, i);
+  } else {
+    textEl.style.display='none'; inpEl.style.display='flex'; btnEl.textContent='✓ Save'; btnEl.style.color='var(--green)';
+    document.getElementById('einput-'+group+'-'+i).focus();
+  }
+}
+
+function saveEditOption(group, i){
+  var val = document.getElementById('einput-'+group+'-'+i).value.trim();
+  if(!val) return;
+  diet[group][i] = val;
+  persistDiet();
+  renderDietEditor();
+  document.getElementById('esb-'+group).classList.add('open');
+  document.querySelector('#es-'+group+' .edit-section-header').classList.add('open');
+  renderAllOptions();
+  showToast('✅ Option updated');
+}
+
+function deleteOption(group, i){
+  if(diet[group].length <= 1){ showToast('⚠️ Keep at least one option'); return; }
+  diet[group].splice(i,1);
+  persistDiet();
+  renderDietEditor();
+  document.getElementById('esb-'+group).classList.add('open');
+  document.querySelector('#es-'+group+' .edit-section-header').classList.add('open');
+  renderAllOptions();
+  showToast('🗑️ Option removed');
+}
+
+function addOption(group){
+  var inp = document.getElementById('new-opt-'+group);
+  var val = inp.value.trim();
+  if(!val) return;
+  diet[group].push(val);
+  inp.value='';
+  persistDiet();
+  renderDietEditor();
+  document.getElementById('esb-'+group).classList.add('open');
+  document.querySelector('#es-'+group+' .edit-section-header').classList.add('open');
+  renderAllOptions();
+  showToast('✅ Option added');
+}
+
+// ═══════════════════════════ TOAST ═══════════════════════════
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+
+// ═══════════════════════════ INIT ═══════════════════════════
+S = loadLocal();
+updateDateLabel();
+updateSummaryLabel();
+renderAllOptions();
+loadDay(currentDate);
+renderSummary();
+</script>
+</body>
+</html>
