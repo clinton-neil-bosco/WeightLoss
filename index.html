@@ -219,6 +219,7 @@
         <div class="row-inputs">
           <div class="input-group"><label>Weight (kg)</label><input type="number" id="inp-weight" placeholder="e.g. 87" step="0.1" min="30" max="200"></div>
           <div class="input-group"><label>Wake-up Time</label><input type="time" id="inp-wakeup" value="12:00"></div>
+          <div class="input-group"><label>Sleep Time</label><input type="time" id="inp-sleep" placeholder="e.g. 03:00"></div>
         </div>
         <div style="margin-top:11px">
           <div class="meal-time-label">How are you feeling?</div>
@@ -654,6 +655,7 @@ function collectData(){
     cycleDay: cycleDay,
     weight: document.getElementById('inp-weight').value,
     wakeup: document.getElementById('inp-wakeup').value,
+    sleep: document.getElementById('inp-sleep').value,
     feelings: feelings,
     notes: document.getElementById('inp-notes').value,
     workout: workoutDid,
@@ -676,6 +678,7 @@ function loadDay(date){
   var d=S[date]||{};
   document.getElementById('inp-weight').value=d.weight||'';
   document.getElementById('inp-wakeup').value=d.wakeup||'12:00';
+  document.getElementById('inp-sleep').value=d.sleep||'';
   document.getElementById('inp-notes').value=d.notes||'';
   document.querySelectorAll('#feeling-chips .chip').forEach(function(c){
     c.classList.toggle('active',d.feelings&&d.feelings.indexOf(c.textContent)>=0);
@@ -736,6 +739,7 @@ function renderSummary(){
   lines.push('');
   lines.push('⚖️ Weight: '+(d.weight?d.weight+' kg':'Not logged'));
   if(d.wakeup)lines.push('🌅 Wake-up: '+d.wakeup);
+  if(d.sleep)lines.push('🌙 Slept at: '+d.sleep);
   lines.push('');
   if(d.workout===true){
     var wo='🏋️ Workout: Done';
