@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#2D6A4F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Diet Tracker">
+<link rel="manifest" href="manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aruna's Diet Tracker</title>
+<title>Clinton's Diet Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -174,7 +180,7 @@
 <body>
 
 <header>
-  <h1>🌿 Aruna's Diet Tracker</h1>
+  <h1>🌿 Clinton's Diet Tracker</h1>
   <p>Carb cycle plan — syncs across all devices</p>
 </header>
 
@@ -189,6 +195,7 @@
   <div class="tab" onclick="switchTab('history')">📅 History</div>
   <div class="tab" onclick="switchTab('weight')">⚖️ Weight</div>
   <div class="tab" onclick="switchTab('diet')">✏️ Diet</div>
+  <div class="tab" onclick="switchTab('schedule')">🗓️ Schedule</div>
 </div>
 
 <!-- ========== TODAY ========== -->
@@ -435,6 +442,43 @@
   </main>
 </div>
 
+<!-- ========== SCHEDULE ========== -->
+<div class="view" id="view-schedule">
+  <style>
+    .sch-day-tabs{display:flex;overflow-x:auto;background:var(--warm-white);border-bottom:1px solid var(--border);padding:10px 14px;gap:7px;}
+    .sch-day-btn{flex-shrink:0;padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:0.78rem;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:var(--cream);color:var(--text-light);transition:all 0.2s;}
+    .sch-day-btn.active{background:var(--saffron);border-color:var(--saffron);color:#fff;}
+    .sch-day-btn.special{border-color:var(--purple);color:var(--purple);}
+    .sch-day-btn.special.active{background:var(--purple);border-color:var(--purple);color:#fff;}
+    .sch-today-badge{font-size:0.62rem;background:var(--green-pale);color:var(--green);padding:1px 5px;border-radius:8px;margin-left:3px;font-weight:700;}
+    .sch-pills{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px 0;max-width:640px;margin:0 auto;}
+    .sch-pill{font-size:0.7rem;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--text-mid);background:var(--warm-white);display:flex;align-items:center;gap:4px;}
+    .sch-pill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .sch-timeline{max-width:640px;margin:0 auto;padding:12px 14px 80px;display:flex;flex-direction:column;}
+    .sch-row{display:flex;align-items:stretch;gap:0;}
+    .sch-time{width:74px;flex-shrink:0;padding:12px 10px 12px 0;text-align:right;font-size:0.72rem;color:var(--text-light);font-variant-numeric:tabular-nums;line-height:1.3;}
+    .sch-mid{display:flex;flex-direction:column;align-items:center;width:26px;flex-shrink:0;}
+    .sch-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:14px;border:2px solid var(--warm-white);}
+    .sch-line{flex:1;width:2px;background:var(--border);}
+    .sch-row:last-child .sch-line{display:none;}
+    .sch-content{flex:1;padding:10px 0 10px 10px;border-bottom:1px solid var(--border);}
+    .sch-row:last-child .sch-content{border-bottom:none;}
+    .sch-label{font-size:0.87rem;color:var(--text-dark);line-height:1.4;}
+    .sch-tag{display:inline-block;font-size:0.68rem;padding:2px 8px;border-radius:20px;margin-top:4px;font-weight:600;}
+    .scat-sleep{background:var(--purple-pale);color:var(--purple);}
+    .scat-health{background:var(--green-pale);color:var(--green);}
+    .scat-learn{background:var(--blue-pale);color:var(--blue);}
+    .scat-work{background:#FEF3CD;color:#92400E;}
+    .scat-faith{background:var(--red-pale);color:var(--red-soft);}
+    .scat-social{background:var(--saffron-pale);color:var(--saffron);}
+    .scat-relax{background:var(--cream);color:var(--text-light);border:1px solid var(--border);}
+  </style>
+
+  <div class="sch-day-tabs" id="schDayTabs"></div>
+  <div class="sch-pills" id="schPills"></div>
+  <div class="sch-timeline" id="schTimeline"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -596,14 +640,136 @@ function goSummaryToday(){ summaryDate=todayStr(); updateSummaryLabel(); renderS
 
 // ═══════════════════════ TABS ═══════════════════════
 function switchTab(tab){
-  document.querySelectorAll('.tab').forEach(function(t,i){ t.classList.toggle('active',['today','summary','history','weight','diet'][i]===tab); });
+  document.querySelectorAll('.tab').forEach(function(t,i){ t.classList.toggle('active',['today','summary','history','weight','diet','schedule'][i]===tab); });
   document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
   document.getElementById('view-'+tab).classList.add('active');
   if(tab==='history')renderHistory();
   if(tab==='weight')renderWeight();
   if(tab==='diet')renderDietEditor();
   if(tab==='summary'){ summaryDate=currentDate; updateSummaryLabel(); renderSummary(); }
+  if(tab==='schedule')renderSchedule();
 }
+
+// ═══════════════════════ SCHEDULE ═══════════════════════
+var SCH_DAYS = {
+  Sun:{label:'Sunday',special:true,items:[
+    {t:'06:00 am',label:'Wake up',cat:'health'},
+    {t:'06:30 am',label:'Walking',cat:'health'},
+    {t:'08:30 am',label:'Relax — get ready for Church',cat:'relax'},
+    {t:'08:50 am',label:'Church',cat:'faith'},
+    {t:'11:00 am',label:'Relax / watch movie / lunch / go out',cat:'relax'},
+    {t:'01:00 pm',label:'Choir practice or relax / lunch / go out',cat:'social'},
+    {t:'03:00 pm',label:'Choir practice',cat:'social'},
+    {t:'08:00 pm',label:'Back from choir — dinner and relax',cat:'relax'},
+    {t:'09:30 pm',label:'Learn',cat:'learn'},
+    {t:'11:00 pm',label:'Sleep',cat:'sleep'}
+  ]},
+  Mon:{label:'Monday',special:false,items:[
+    {t:'06:00 am',label:'Wake up',cat:'health'},
+    {t:'06:30 am',label:'Walking',cat:'health'},
+    {t:'08:30 am',label:'Relax',cat:'relax'},
+    {t:'09:00 am',label:'Learn',cat:'learn'},
+    {t:'12:00 pm',label:'Relax and lunch',cat:'relax'},
+    {t:'02:00 pm',label:'Learn',cat:'learn'},
+    {t:'05:00 pm',label:'Relax',cat:'relax'},
+    {t:'05:30 pm',label:'Office',cat:'work'}
+  ]},
+  Tue:{label:'Tuesday',special:false,items:[
+    {t:'03:00 am',label:'Sleep',cat:'sleep'},
+    {t:'11:00 am',label:'Wake up',cat:'health'},
+    {t:'11:30 am',label:'Walking',cat:'health'},
+    {t:'01:00 pm',label:'Relax and lunch',cat:'relax'},
+    {t:'02:00 pm',label:'Learn',cat:'learn'},
+    {t:'03:30 pm',label:'Get ready for office',cat:'relax'},
+    {t:'04:00 pm',label:'Office',cat:'work'}
+  ]},
+  Wed:{label:'Wednesday',special:false,items:[
+    {t:'04:00 am',label:'Sleep',cat:'sleep'},
+    {t:'11:00 am',label:'Wake up',cat:'health'},
+    {t:'11:30 am',label:'Walking',cat:'health'},
+    {t:'01:00 pm',label:'Relax and lunch',cat:'relax'},
+    {t:'02:00 pm',label:'Learn',cat:'learn'},
+    {t:'03:30 pm',label:'Get ready for office',cat:'relax'},
+    {t:'04:00 pm',label:'Office',cat:'work'}
+  ]},
+  Thu:{label:'Thursday',special:false,items:[
+    {t:'04:00 am',label:'Sleep',cat:'sleep'},
+    {t:'11:00 am',label:'Wake up',cat:'health'},
+    {t:'11:30 am',label:'Walking',cat:'health'},
+    {t:'01:00 pm',label:'Relax and lunch',cat:'relax'},
+    {t:'02:00 pm',label:'Learn',cat:'learn'},
+    {t:'03:30 pm',label:'Get ready for office',cat:'relax'},
+    {t:'04:00 pm',label:'Office',cat:'work'}
+  ]},
+  Fri:{label:'Friday',special:false,items:[
+    {t:'04:00 am',label:'Sleep',cat:'sleep'},
+    {t:'11:00 am',label:'Wake up',cat:'health'},
+    {t:'11:30 am',label:'Walking',cat:'health'},
+    {t:'01:00 pm',label:'Relax and lunch',cat:'relax'},
+    {t:'02:00 pm',label:'Learn',cat:'learn'},
+    {t:'05:00 pm',label:'Relax',cat:'relax'},
+    {t:'05:30 pm',label:'Office',cat:'work'}
+  ]},
+  Sat:{label:'Saturday',special:true,items:[
+    {t:'03:00 am',label:'Sleep',cat:'sleep'},
+    {t:'11:00 am',label:'Wake up',cat:'health'},
+    {t:'11:30 am',label:'Walking',cat:'health'},
+    {t:'01:00 pm',label:'Relax and lunch',cat:'relax'},
+    {t:'02:00 pm',label:'Learn',cat:'learn'},
+    {t:'04:00 pm',label:'Choir practice',cat:'social'},
+    {t:'08:00 pm',label:'Relax + dinner or go out',cat:'relax'},
+    {t:'09:00 pm',label:'Learn (if staying in)',cat:'learn'},
+    {t:'11:00 pm',label:'Sleep',cat:'sleep'}
+  ]}
+};
+
+var SCH_CAT_LABELS={sleep:'Sleep',health:'Walk / health',learn:'Learn',work:'Office',faith:'Church',social:'Choir / social',relax:'Relax / meals'};
+var SCH_DOT_COLORS={sleep:'var(--purple)',health:'var(--green)',learn:'var(--blue)',work:'#D97706',faith:'var(--red-soft)',social:'var(--saffron)',relax:'var(--border)'};
+var SCH_TAG_CLASS={sleep:'scat-sleep',health:'scat-health',learn:'scat-learn',work:'scat-work',faith:'scat-faith',social:'scat-social',relax:'scat-relax'};
+
+var schActiveDay = (function(){
+  var dayKeys=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return dayKeys[new Date().getDay()];
+})();
+
+function renderSchedule(){
+  var keys=Object.keys(SCH_DAYS);
+  var todayKey=(function(){ var dk=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; return dk[new Date().getDay()]; })();
+
+  // Day tabs
+  document.getElementById('schDayTabs').innerHTML=keys.map(function(k){
+    var d=SCH_DAYS[k];
+    var isToday=k===todayKey;
+    var isActive=k===schActiveDay;
+    return '<div class="sch-day-btn'+(isActive?' active':'')+(d.special?' special':'')+'" onclick="setSchDay(\''+k+'\')">'
+      +d.label.slice(0,3)+(isToday?'<span class="sch-today-badge">today</span>':'')
+      +'</div>';
+  }).join('');
+
+  // Category pills
+  var d=SCH_DAYS[schActiveDay];
+  var cats=[]; d.items.forEach(function(i){ if(cats.indexOf(i.cat)<0)cats.push(i.cat); });
+  document.getElementById('schPills').innerHTML=cats.map(function(c){
+    return '<div class="sch-pill"><div class="sch-pill-dot" style="background:'+SCH_DOT_COLORS[c]+'"></div>'+SCH_CAT_LABELS[c]+'</div>';
+  }).join('');
+
+  // Timeline
+  document.getElementById('schTimeline').innerHTML=d.items.map(function(item){
+    return '<div class="sch-row">'
+      +'<div class="sch-time">'+item.t+'</div>'
+      +'<div class="sch-mid">'
+        +'<div class="sch-dot" style="background:'+SCH_DOT_COLORS[item.cat]+'"></div>'
+        +'<div class="sch-line"></div>'
+      +'</div>'
+      +'<div class="sch-content">'
+        +'<div class="sch-label">'+item.label+'</div>'
+        +'<span class="sch-tag '+SCH_TAG_CLASS[item.cat]+'">'+SCH_CAT_LABELS[item.cat]+'</span>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function setSchDay(k){ schActiveDay=k; renderSchedule(); }
 
 // ═══════════════════════ INTERACTIONS ═══════════════════════
 function selectOption(el,group){
@@ -909,3 +1075,170 @@ renderSummary();
 </script>
 </body>
 </html>
+<!-- PWA + ALARM ADDITIONS (appended) -->
+<script>
+// ═══════════════════════ SERVICE WORKER REGISTRATION ═══════════════════════
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(function(reg){
+    console.log('SW registered');
+  }).catch(function(e){ console.warn('SW failed:',e); });
+}
+
+// ═══════════════════════ ALARM SYSTEM ═══════════════════════
+var ALARM_KEY = 'clinton_alarms';
+
+function loadAlarms(){
+  try{ return JSON.parse(localStorage.getItem(ALARM_KEY)||'{}'); }
+  catch(e){ return {}; }
+}
+function saveAlarms(alarms){
+  localStorage.setItem(ALARM_KEY, JSON.stringify(alarms));
+}
+
+// alarmId = dayKey + '_' + index  e.g. "Tue_2"
+function getAlarmId(dayKey, idx){ return dayKey+'_'+idx; }
+
+function isAlarmOn(dayKey, idx){
+  var alarms = loadAlarms();
+  return !!alarms[getAlarmId(dayKey,idx)];
+}
+
+function toggleAlarm(dayKey, idx, timeStr, label){
+  var alarms = loadAlarms();
+  var id = getAlarmId(dayKey, idx);
+  if(alarms[id]){
+    // Turn OFF
+    delete alarms[id];
+    saveAlarms(alarms);
+    cancelNotification(id);
+    renderSchedule();
+    showToast('🔕 Alarm removed for '+timeStr);
+  } else {
+    // Turn ON — request permission first
+    requestNotifPermission(function(granted){
+      if(!granted){
+        showToast('⚠️ Enable notifications in browser settings');
+        return;
+      }
+      alarms[id] = {dayKey:dayKey, idx:idx, time:timeStr, label:label, enabled:true};
+      saveAlarms(alarms);
+      scheduleNotification(id, dayKey, timeStr, label);
+      renderSchedule();
+      showToast('🔔 Alarm set for '+timeStr+' — '+label);
+    });
+  }
+}
+
+function requestNotifPermission(cb){
+  if(!('Notification' in window)){ cb(false); return; }
+  if(Notification.permission==='granted'){ cb(true); return; }
+  if(Notification.permission==='denied'){ cb(false); return; }
+  Notification.requestPermission().then(function(p){ cb(p==='granted'); });
+}
+
+// Schedule a notification for the NEXT occurrence of this weekday+time
+function scheduleNotification(id, dayKey, timeStr, label){
+  var ms = msUntilNextOccurrence(dayKey, timeStr);
+  if(ms < 0) return;
+  // Store timeout reference — use setTimeout for PWA, real alarm in Capacitor
+  var t = setTimeout(function(){
+    fireNotification(label, timeStr);
+    // reschedule for next week
+    var alarms = loadAlarms();
+    if(alarms[id]){
+      scheduleNotification(id, dayKey, timeStr, label);
+    }
+  }, ms);
+  // store handle in memory (reloads need SW to handle this)
+  window['_alarm_'+id] = t;
+}
+
+function cancelNotification(id){
+  if(window['_alarm_'+id]){
+    clearTimeout(window['_alarm_'+id]);
+    delete window['_alarm_'+id];
+  }
+}
+
+function fireNotification(label, timeStr){
+  if(Notification.permission==='granted'){
+    new Notification("⏰ "+label, {
+      body: "Scheduled time: "+timeStr,
+      icon: "icon-192.png",
+      badge: "icon-192.png",
+      vibrate: [200,100,200]
+    });
+  }
+}
+
+function msUntilNextOccurrence(dayKey, timeStr){
+  var dayMap={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+  var target = dayMap[dayKey];
+  var parts = timeStr.match(/(\d+):(\d+)\s*(am|pm)/i);
+  if(!parts) return -1;
+  var h = parseInt(parts[1]), m = parseInt(parts[2]), ampm = parts[3].toLowerCase();
+  if(ampm==='pm' && h!==12) h+=12;
+  if(ampm==='am' && h===12) h=0;
+  var now = new Date();
+  var next = new Date();
+  next.setHours(h, m, 0, 0);
+  var diff = target - now.getDay();
+  if(diff < 0) diff += 7;
+  if(diff === 0 && next <= now) diff = 7;
+  next.setDate(now.getDate() + diff);
+  return next - now;
+}
+
+// Re-schedule all saved alarms on page load
+function reScheduleAllAlarms(){
+  var alarms = loadAlarms();
+  Object.keys(alarms).forEach(function(id){
+    var a = alarms[id];
+    scheduleNotification(id, a.dayKey, a.time, a.label);
+  });
+}
+reScheduleAllAlarms();
+
+// ═══════════════════════ PATCH renderSchedule TO INCLUDE ALARM BELLS ═══════════════════════
+var _origRenderSchedule = renderSchedule;
+renderSchedule = function(){
+  _origRenderSchedule();
+  // After original render, patch each row with a bell button
+  var d = SCH_DAYS[schActiveDay];
+  var rows = document.querySelectorAll('.sch-row');
+  d.items.forEach(function(item, idx){
+    var row = rows[idx];
+    if(!row) return;
+    var content = row.querySelector('.sch-content');
+    if(!content) return;
+    var on = isAlarmOn(schActiveDay, idx);
+    // remove old bell if exists
+    var old = content.querySelector('.sch-bell');
+    if(old) old.remove();
+    var bell = document.createElement('button');
+    bell.className = 'sch-bell';
+    bell.title = on ? 'Alarm on — tap to remove' : 'Set alarm';
+    bell.style.cssText = 'background:none;border:none;cursor:pointer;font-size:1.1rem;float:right;margin-top:-28px;padding:4px 6px;border-radius:8px;transition:background 0.15s;'+(on?'opacity:1;':'opacity:0.35;');
+    bell.innerHTML = on ? '🔔' : '🔕';
+    bell.onclick = (function(i, t, l){ return function(e){ e.stopPropagation(); toggleAlarm(schActiveDay, i, t, l); }; })(idx, item.t, item.label);
+    content.appendChild(bell);
+  });
+
+  // Show permission banner if not yet granted
+  renderNotifBanner();
+};
+
+function renderNotifBanner(){
+  var existing = document.getElementById('notif-banner');
+  if(existing) existing.remove();
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'granted') return;
+  var tl = document.getElementById('schTimeline');
+  if(!tl) return;
+  var banner = document.createElement('div');
+  banner.id = 'notif-banner';
+  banner.style.cssText = 'background:var(--saffron-pale);border:1px solid var(--saffron-light);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:0.82rem;color:var(--text-mid);';
+  banner.innerHTML = '<span style="font-size:1.2rem">🔔</span><span style="flex:1">Tap a 🔕 on any activity to set an alarm. You\'ll be asked to allow notifications.</span>';
+  tl.insertBefore(banner, tl.firstChild);
+}
+</script>
